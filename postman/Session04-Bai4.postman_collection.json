@@ -1,0 +1,561 @@
+{
+  "info": {
+    "_postman_id": "21bf7217-6054-4a7d-8f5e-ffbb3c9d6034",
+    "name": "Session04 - Bai4 - Course enrollment",
+    "description": "Run the folders in order. The first request clears IDs from the previous run; POST tests capture new IDs from Location as strings. All API bodies use ApiResponse with data: null. Each complete run creates one instructor, course, student and enrollment in the configured database.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "01 - Happy flow (run in order)",
+      "description": "Create an instructor, create a course, activate the course, create a student and enroll the student.",
+      "item": [
+        {
+          "name": "01 - Create instructor",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "[\"instructorId\", \"courseId\", \"studentId\", \"enrollmentId\"].forEach(function (name) {",
+                  "    pm.collectionVariables.unset(name);",
+                  "});"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"success is true\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", true);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});",
+                  "pm.test(\"Location contains the generated instructorId\", function () {",
+                  "    const location = pm.response.headers.get(\"Location\");",
+                  "    pm.expect(location).to.be.a(\"string\");",
+                  "    const match = location.match(/\\/instructors\\/([0-9]+)\\/?$/);",
+                  "    pm.expect(match, \"Location must end in /instructors/{id}\").not.to.equal(null);",
+                  "    pm.collectionVariables.set(\"instructorId\", match[1]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Session04 Instructor\",\n  \"email\": \"instructor.session04@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/instructors",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "instructors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 - Create inactive course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"success is true\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", true);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});",
+                  "pm.test(\"Location contains the generated courseId\", function () {",
+                  "    const location = pm.response.headers.get(\"Location\");",
+                  "    pm.expect(location).to.be.a(\"string\");",
+                  "    const match = location.match(/\\/courses\\/([0-9]+)\\/?$/);",
+                  "    pm.expect(match, \"Location must end in /courses/{id}\").not.to.equal(null);",
+                  "    pm.collectionVariables.set(\"courseId\", match[1]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Demo Session04 Course\",\n  \"status\": \"INACTIVE\",\n  \"instructorId\": {{instructorId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 - Activate course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"success is true\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", true);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Demo Session04 Course\",\n  \"status\": \"ACTIVE\",\n  \"instructorId\": {{instructorId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/courses/{{courseId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses",
+                "{{courseId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 - Create student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"success is true\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", true);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});",
+                  "pm.test(\"Location contains the generated studentId\", function () {",
+                  "    const location = pm.response.headers.get(\"Location\");",
+                  "    pm.expect(location).to.be.a(\"string\");",
+                  "    const match = location.match(/\\/students\\/([0-9]+)\\/?$/);",
+                  "    pm.expect(match, \"Location must end in /students/{id}\").not.to.equal(null);",
+                  "    pm.collectionVariables.set(\"studentId\", match[1]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Demo Session04 Student\",\n  \"email\": \"student.session04@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 - Enroll student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "pm.test(\"success is true\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", true);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});",
+                  "pm.test(\"Location contains the generated enrollmentId\", function () {",
+                  "    const location = pm.response.headers.get(\"Location\");",
+                  "    pm.expect(location).to.be.a(\"string\");",
+                  "    const match = location.match(/\\/students-enrollments\\/([0-9]+)\\/?$/);",
+                  "    pm.expect(match, \"Location must end in /students-enrollments/{id}\").not.to.equal(null);",
+                  "    pm.collectionVariables.set(\"enrollmentId\", match[1]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": {{courseId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students-enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students-enrollments"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Validation and missing records",
+      "description": "Run after the happy flow so studentId is populated. These requests must not create records.",
+      "item": [
+        {
+          "name": "06 - Reject missing instructor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"success is false\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", false);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Course with missing instructor\",\n  \"status\": \"INACTIVE\",\n  \"instructorId\": 9223372036854775807\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/courses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "courses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 - Reject missing course",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test(\"success is false\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", false);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": {{studentId}},\n  \"courseId\": 9223372036854775807\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students-enrollments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students-enrollments"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 - Reject invalid student email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP status is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"success is false\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"success\", false);",
+                  "});",
+                  "pm.test(\"message is a non-empty string\", function () {",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property(\"message\");",
+                  "    pm.expect(body.message).to.be.a(\"string\").and.not.empty;",
+                  "});",
+                  "pm.test(\"data is exactly null\", function () {",
+                  "    pm.expect(pm.response.json()).to.have.property(\"data\", null);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Invalid Email Student\",\n  \"email\": \"not-an-email\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "students"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "instructorId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "courseId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "studentId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "enrollmentId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
